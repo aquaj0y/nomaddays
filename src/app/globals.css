@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0f172a;
+  --muted: #5b6476;
+  --card: #f7f2ea;
+  --accent: #ff7a59;
+  --accent-deep: #e3573a;
+  --outline: rgba(15, 23, 42, 0.12);
+  --shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+  --bg: radial-gradient(circle at top left, #fff4e1 0%, #f4f6ff 40%, #fef8f1 100%);
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-text), "Avenir Next", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 999px;
+  filter: blur(0px);
+  opacity: 0.6;
+}
+
+body::before {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -120px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 122, 89, 0.6), transparent 70%);
+}
+
+body::after {
+  width: 560px;
+  height: 560px;
+  bottom: -220px;
+  left: -160px;
+  background: radial-gradient(circle at 70% 30%, rgba(99, 102, 241, 0.35), transparent 70%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.page {
+  display: flex;
+  justify-content: center;
+  padding: 48px 20px 80px;
+}
+
+.shell {
+  width: min(1120px, 100%);
+  display: grid;
+  gap: 32px;
+}
+
+.hero {
+  display: grid;
+  gap: 18px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.title {
+  font-family: var(--font-display), "Bodoni 72", Georgia, serif;
+  font-size: clamp(2.6rem, 3vw + 2rem, 4.4rem);
+  line-height: 1.05;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 640px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  background: #ffffffcc;
+  border: 1px solid var(--outline);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+}
+
+.card h2 {
+  margin: 0 0 14px;
+  font-size: 1.3rem;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+}
+
+.input,
+.select {
+  border: 1px solid var(--outline);
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 122, 89, 0.2);
+}
+
+.mode-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.mode {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--outline);
+  border-radius: 18px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  background: #fff;
+  text-align: left;
+}
+
+.mode.active {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(255, 122, 89, 0.16);
+}
+
+.mode-title {
+  font-weight: 600;
+}
+
+.mode-desc {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.result {
+  display: grid;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.result .value {
+  font-family: var(--font-display), "Bodoni 72", Georgia, serif;
+  font-size: 2.4rem;
+}
+
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid var(--outline);
+  background: #fff;
+  font-size: 0.82rem;
+}
+
+.note {
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 20px;
+  color: #fff;
+  background: linear-gradient(120deg, var(--accent), var(--accent-deep));
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 24px rgba(227, 87, 58, 0.3);
+}
+
+.cta:hover {
+  transform: translateY(-1px);
+}
+
+.footer {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fade-up 0.6s ease forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes fade-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 36px 16px 64px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .result .value {
+    font-size: 2rem;
+  }
+}
