@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 
 type Mode = "inclusive" | "exclusive" | "time-based" | "any-presence";
+type Flow = "count-days" | "find-end-date";
 
 const MODES: Array<{
   id: Mode;
@@ -23,7 +24,8 @@ const MODES: Array<{
   {
     id: "time-based",
     title: "Time-based (24-hour blocks)",
-    description: "Uses exact time difference and floors to full 24-hour periods.",
+    description:
+      "Uses exact time difference and floors to full 24-hour periods.",
   },
   {
     id: "any-presence",
@@ -152,7 +154,8 @@ const calculateEndDate = ({
   if (!arrivalTime) {
     return {
       endDate: null,
-      summary: "Time-based mode needs an arrival time to calculate the end date.",
+      summary:
+        "Time-based mode needs an arrival time to calculate the end date.",
     };
   }
 
@@ -169,10 +172,9 @@ const calculateEndDate = ({
   const endDate = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(
     end.getDate(),
   ).padStart(2, "0")}`;
-  const endTime = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(
-    2,
-    "0",
-  )}`;
+  const endTime = `${String(end.getHours()).padStart(2, "0")}:${String(
+    end.getMinutes(),
+  ).padStart(2, "0")}`;
 
   return {
     endDate,
@@ -312,12 +314,24 @@ const calculateDays = ({
 };
 
 export default function Home() {
+  const [flow, setFlow] = useState<Flow>("count-days");
   const [arrivalDate, setArrivalDate] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureTime, setDepartureTime] = useState("");
   const [totalDaysInput, setTotalDaysInput] = useState("");
   const [mode, setMode] = useState<Mode>("inclusive");
+  const isTimeBasedMode = mode === "time-based";
+
+  const resetAllInputs = () => {
+    setFlow("count-days");
+    setArrivalDate("");
+    setDepartureDate("");
+    setArrivalTime("");
+    setDepartureTime("");
+    setTotalDaysInput("");
+    setMode("inclusive");
+  };
 
   const result = useMemo(
     () =>
@@ -345,12 +359,14 @@ export default function Home() {
   return (
     <div className="page">
       <div className="shell">
-        <section className="hero reveal" style={{ "--delay": "0s" } as CSSProperties}>
-          <div className="eyebrow">Country day counter</div>
-          <h1 className="title">Count days in-country with your rulebook.</h1>
+        <section
+          className="hero reveal"
+          style={{ "--delay": "0s" } as CSSProperties}
+        >
+          <div className="eyebrow">Nomad days calculator</div>
+          <h1 className="title">Count your days in-country</h1>
           <p className="subtitle">
-            Compare inclusive, exclusive, time-based, and any-presence calculations.
-            All date-only math uses calendar days; time-based mode uses 24-hour periods.
+            Use arrival/departure dates or start date + total days.
           </p>
           <div className="pill-row">
             <span className="pill">Client-only</span>
@@ -359,54 +375,44 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid">
-          <div className="card reveal" style={{ "--delay": "0.1s" } as CSSProperties}>
-            <h2>Stay details</h2>
-            <div className="grid">
-              <label className="field">
-                <span className="label">Arrival date</span>
-                <input
-                  className="input"
-                  type="date"
-                  value={arrivalDate}
-                  onChange={(event) => setArrivalDate(event.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span className="label">Departure date</span>
-                <input
-                  className="input"
-                  type="date"
-                  value={departureDate}
-                  onChange={(event) => setDepartureDate(event.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span className="label">Arrival time (optional)</span>
-                <input
-                  className="input"
-                  type="time"
-                  value={arrivalTime}
-                  onChange={(event) => setArrivalTime(event.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span className="label">Departure time (optional)</span>
-                <input
-                  className="input"
-                  type="time"
-                  value={departureTime}
-                  onChange={(event) => setDepartureTime(event.target.value)}
-                />
-              </label>
-            </div>
-            <p className="note">
-              All calculations use your device time zone. For time-based or any-presence mode,
-              add times for finer precision.
-            </p>
+        <section
+          className="card flow-switch reveal"
+          style={{ "--delay": "0.08s" } as CSSProperties}
+        >
+          <div
+            className="flow-tabs"
+            role="tablist"
+            aria-label="Calculator flow"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={flow === "count-days"}
+              className={`flow-tab ${flow === "count-days" ? "active" : ""}`}
+              onClick={() => setFlow("count-days")}
+            >
+              Count days from arrival + departure
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={flow === "find-end-date"}
+              className={`flow-tab ${flow === "find-end-date" ? "active" : ""}`}
+              onClick={() => setFlow("find-end-date")}
+            >
+              Find end date from arrival + total days
+            </button>
           </div>
+          <p className="note flow-context">
+            Choose a flow first, then choose the rule set below.
+          </p>
+        </section>
 
-          <div className="card reveal" style={{ "--delay": "0.2s" } as CSSProperties}>
+        <section className="grid">
+          <div
+            className="card reveal"
+            style={{ "--delay": "0.2s" } as CSSProperties}
+          >
             <h2>Calculation mode</h2>
             <div className="mode-grid">
               {MODES.map((option) => (
@@ -423,33 +429,152 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="card reveal" style={{ "--delay": "0.3s" } as CSSProperties}>
-            <h2>Result</h2>
-            <div className="result">
-              <div className="value">
-                {result.days === null ? "—" : `${result.days} day${result.days === 1 ? "" : "s"}`}
+          {flow === "count-days" ? (
+            <>
+              <div
+                className="card flow-panel reveal"
+                style={{ "--delay": "0.1s" } as CSSProperties}
+              >
+                <h2>Count days from arrival + departure</h2>
+                <p className="note">
+                  This flow calculates your total days in-country using arrival
+                  and departure inputs.
+                </p>
+                <div className="grid">
+                  <label className="field">
+                    <span className="label">Arrival date</span>
+                    <input
+                      className="input"
+                      type="date"
+                      value={arrivalDate}
+                      onChange={(event) => setArrivalDate(event.target.value)}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="label">Departure date</span>
+                    <input
+                      className="input"
+                      type="date"
+                      value={departureDate}
+                      onChange={(event) => setDepartureDate(event.target.value)}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="label">Arrival time (optional)</span>
+                    <input
+                      className="input"
+                      type="time"
+                      value={arrivalTime}
+                      onChange={(event) => setArrivalTime(event.target.value)}
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="label">Departure time (optional)</span>
+                    <input
+                      className="input"
+                      type="time"
+                      value={departureTime}
+                      onChange={(event) => setDepartureTime(event.target.value)}
+                    />
+                  </label>
+                </div>
+                <p className="note">
+                  All calculations use your device time zone. For time-based or
+                  any-presence mode, add times for finer precision.
+                </p>
               </div>
-              <div>{result.summary}</div>
-              {result.detail ? <div className="note">{result.detail}</div> : null}
-              {result.error ? (
-                <div className="note">Fix the date/time range to continue.</div>
-              ) : null}
-            </div>
-            <div style={{ marginTop: "16px" }}>
-              <label className="field">
-                <span className="label">Total days in country</span>
-                <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  step={1}
-                  placeholder="e.g. 90"
-                  value={totalDaysInput}
-                  onChange={(event) => setTotalDaysInput(event.target.value)}
-                />
-              </label>
+
+              <div
+                className="card flow-panel reveal"
+                style={{ "--delay": "0.3s" } as CSSProperties}
+              >
+                <h2>Result</h2>
+                <div className="result">
+                  <div className="value">
+                    {result.days === null
+                      ? "—"
+                      : `${result.days} day${result.days === 1 ? "" : "s"}`}
+                  </div>
+                  <div>{result.summary}</div>
+                  {result.detail ? (
+                    <div className="note">{result.detail}</div>
+                  ) : null}
+                  {result.error ? (
+                    <div className="note">
+                      Fix the date/time range to continue.
+                    </div>
+                  ) : null}
+                </div>
+                <div style={{ marginTop: "16px" }}>
+                  <button
+                    className="cta"
+                    type="button"
+                    onClick={resetAllInputs}
+                  >
+                    Reset inputs
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div
+              className="card flow-panel reveal"
+              style={{ "--delay": "0.1s" } as CSSProperties}
+            >
+              <h2>Find end date from arrival + total days</h2>
+              <p className="note">
+                Need to plan a visa limit? Use this to compute your end or
+                departure date.
+              </p>
+              <div className="grid">
+                <label className="field">
+                  <span className="label">Arrival date</span>
+                  <input
+                    className="input"
+                    type="date"
+                    value={arrivalDate}
+                    onChange={(event) => setArrivalDate(event.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span className="label">
+                    {isTimeBasedMode
+                      ? "Arrival time (required for time-based mode)"
+                      : "Arrival time (optional)"}
+                  </span>
+                  <input
+                    className="input"
+                    type="time"
+                    value={arrivalTime}
+                    onChange={(event) => setArrivalTime(event.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  <span className="label">Total days in country</span>
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    step={1}
+                    placeholder="e.g. 90"
+                    value={totalDaysInput}
+                    onChange={(event) => setTotalDaysInput(event.target.value)}
+                  />
+                </label>
+              </div>
+              {isTimeBasedMode ? (
+                <p className="note">
+                  Time-based mode adds full 24-hour blocks from your arrival
+                  date and time.
+                </p>
+              ) : (
+                <p className="note">
+                  Inclusive and any-presence treat arrival day as day 1.
+                  Exclusive returns a departure date.
+                </p>
+              )}
               <div className="result" style={{ marginTop: "12px" }}>
-                <div className="value" style={{ fontSize: "1.6rem" }}>
+                <div className="value compact">
                   {endDateResult.endDate
                     ? endDateResult.endTime
                       ? `${endDateResult.endDate} ${endDateResult.endTime}`
@@ -457,38 +582,35 @@ export default function Home() {
                     : "—"}
                 </div>
                 <div>{endDateResult.summary}</div>
-                {endDateResult.detail ? <div className="note">{endDateResult.detail}</div> : null}
+                {endDateResult.detail ? (
+                  <div className="note">{endDateResult.detail}</div>
+                ) : null}
                 {endDateResult.error ? (
-                  <div className="note">Fix inputs to calculate the end date.</div>
+                  <div className="note">
+                    Fix inputs to calculate the end date.
+                  </div>
                 ) : null}
               </div>
+              <div style={{ marginTop: "16px" }}>
+                <button className="cta" type="button" onClick={resetAllInputs}>
+                  Reset inputs
+                </button>
+              </div>
             </div>
-            <div style={{ marginTop: "16px" }}>
-              <button
-                className="cta"
-                type="button"
-                onClick={() => {
-                  setArrivalDate("");
-                  setDepartureDate("");
-                  setArrivalTime("");
-                  setDepartureTime("");
-                  setTotalDaysInput("");
-                  setMode("inclusive");
-                }}
-              >
-                Reset inputs
-              </button>
-            </div>
-          </div>
+          )}
         </section>
 
-        <section className="card reveal" style={{ "--delay": "0.4s" } as CSSProperties}>
+        <section
+          className="card reveal"
+          style={{ "--delay": "0.4s" } as CSSProperties}
+        >
           <h2>Quick examples</h2>
           <div className="grid">
             <button
               className="mode"
               type="button"
               onClick={() => {
+                setFlow("count-days");
                 setArrivalDate("2026-02-05");
                 setDepartureDate("2026-02-07");
                 setArrivalTime("");
@@ -503,6 +625,7 @@ export default function Home() {
               className="mode"
               type="button"
               onClick={() => {
+                setFlow("count-days");
                 setArrivalDate("2026-02-05");
                 setDepartureDate("2026-02-07");
                 setArrivalTime("22:30");
@@ -511,12 +634,15 @@ export default function Home() {
               }}
             >
               <span className="mode-title">Overnight layover</span>
-              <span className="mode-desc">10 hours total, time-based mode.</span>
+              <span className="mode-desc">
+                10 hours total, time-based mode.
+              </span>
             </button>
             <button
               className="mode"
               type="button"
               onClick={() => {
+                setFlow("count-days");
                 setArrivalDate("2026-02-05");
                 setDepartureDate("2026-02-05");
                 setArrivalTime("08:15");
@@ -525,14 +651,19 @@ export default function Home() {
               }}
             >
               <span className="mode-title">Same-day visit</span>
-              <span className="mode-desc">Counts one day with any presence.</span>
+              <span className="mode-desc">
+                Counts one day with any presence.
+              </span>
             </button>
           </div>
         </section>
 
-        <section className="footer reveal" style={{ "--delay": "0.5s" } as CSSProperties}>
-          Tip: if you need exact legal residency rules, verify the official policy for the
-          country. This tool is a calculator, not legal advice.
+        <section
+          className="footer reveal"
+          style={{ "--delay": "0.5s" } as CSSProperties}
+        >
+          Tip: if you need exact legal residency rules, verify the official
+          policy for the country. This tool is a calculator, not legal advice.
         </section>
       </div>
     </div>

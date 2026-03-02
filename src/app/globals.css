@@ -116,6 +116,53 @@ select {
   backdrop-filter: blur(6px);
 }
 
+.flow-switch {
+  display: grid;
+  gap: 12px;
+}
+
+.flow-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flow-tab {
+  border: 1px solid var(--outline);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.flow-tab:hover {
+  transform: translateY(-1px);
+}
+
+.flow-tab.active {
+  border-color: var(--accent);
+  box-shadow: 0 10px 22px rgba(227, 87, 58, 0.18);
+  background: linear-gradient(180deg, #fff 0%, #fff7f4 100%);
+}
+
+.flow-tab:focus-visible {
+  outline: 3px solid rgba(255, 122, 89, 0.28);
+  outline-offset: 1px;
+}
+
+.flow-context {
+  margin: 0;
+}
+
+.flow-panel {
+  border-color: rgba(227, 87, 58, 0.22);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.12);
+}
+
 .card h2 {
   margin: 0 0 14px;
   font-size: 1.3rem;
@@ -194,6 +241,10 @@ select {
   font-size: 2.4rem;
 }
 
+.result .value.compact {
+  font-size: 1.6rem;
+}
+
 .pill-row {
   display: flex;
   flex-wrap: wrap;
@@ -263,5 +314,15 @@ select {
 
   .result .value {
     font-size: 2rem;
+  }
+
+  .flow-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-tab {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
   }
 }
