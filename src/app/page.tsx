@@ -41,6 +41,14 @@ type Result = {
   error?: string;
 };
 
+type EndDateResult = {
+  endDate: string | null;
+  endTime?: string;
+  summary: string;
+  detail?: string;
+  error?: string;
+};
+
 const parseDateParts = (value: string) => {
   if (!value) return null;
   const [year, month, day] = value.split("-").map(Number);
@@ -74,6 +82,104 @@ const combineDateTime = (dateValue: string, timeValue: string) => {
     0,
     0,
   );
+};
+
+const formatUtcDate = (utcMs: number) => {
+  const date = new Date(utcMs);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const calculateEndDate = ({
+  arrivalDate,
+  arrivalTime,
+  totalDaysInput,
+  mode,
+}: {
+  arrivalDate: string;
+  arrivalTime: string;
+  totalDaysInput: string;
+  mode: Mode;
+}): EndDateResult => {
+  if (!arrivalDate) {
+    return {
+      endDate: null,
+      summary: "Add an arrival date to calculate an end date.",
+    };
+  }
+
+  if (!totalDaysInput) {
+    return {
+      endDate: null,
+      summary: "Enter total days to calculate the end date.",
+    };
+  }
+
+  const totalDays = Number(totalDaysInput);
+  if (!Number.isInteger(totalDays) || totalDays < 1) {
+    return {
+      endDate: null,
+      summary: "Total days must be a whole number (1 or more).",
+      error: "invalid-total-days",
+    };
+  }
+
+  const startUtc = dateOnlyUtc(arrivalDate);
+  if (startUtc === null) {
+    return { endDate: null, summary: "Check your arrival date input." };
+  }
+
+  if (mode === "inclusive" || mode === "any-presence") {
+    const endDateUtc = startUtc + (totalDays - 1) * MS_PER_DAY;
+    return {
+      endDate: formatUtcDate(endDateUtc),
+      summary: `End date: ${formatUtcDate(endDateUtc)}.`,
+      detail: "Formula: arrival + (total days - 1).",
+    };
+  }
+
+  if (mode === "exclusive") {
+    const endDateUtc = startUtc + totalDays * MS_PER_DAY;
+    return {
+      endDate: formatUtcDate(endDateUtc),
+      summary: `Departure date: ${formatUtcDate(endDateUtc)}.`,
+      detail: "Exclusive mode excludes the departure day.",
+    };
+  }
+
+  if (!arrivalTime) {
+    return {
+      endDate: null,
+      summary: "Time-based mode needs an arrival time to calculate the end date.",
+    };
+  }
+
+  const arrival = combineDateTime(arrivalDate, arrivalTime);
+  if (!arrival) {
+    return {
+      endDate: null,
+      summary: "Check your arrival date/time input.",
+      error: "invalid-arrival",
+    };
+  }
+
+  const end = new Date(arrival.getTime() + totalDays * MS_PER_DAY);
+  const endDate = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(
+    end.getDate(),
+  ).padStart(2, "0")}`;
+  const endTime = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(
+    2,
+    "0",
+  )}`;
+
+  return {
+    endDate,
+    endTime,
+    summary: `End date/time: ${endDate} ${endTime}.`,
+    detail: "Time-based mode adds full 24-hour blocks from arrival.",
+  };
 };
 
 const calculateDays = ({
@@ -210,6 +316,7 @@ export default function Home() {
   const [departureDate, setDepartureDate] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureTime, setDepartureTime] = useState("");
+  const [totalDaysInput, setTotalDaysInput] = useState("");
   const [mode, setMode] = useState<Mode>("inclusive");
 
   const result = useMemo(
@@ -222,6 +329,17 @@ export default function Home() {
         mode,
       }),
     [arrivalDate, departureDate, arrivalTime, departureTime, mode],
+  );
+
+  const endDateResult = useMemo(
+    () =>
+      calculateEndDate({
+        arrivalDate,
+        arrivalTime,
+        totalDaysInput,
+        mode,
+      }),
+    [arrivalDate, arrivalTime, totalDaysInput, mode],
   );
 
   return (
@@ -318,6 +436,34 @@ export default function Home() {
               ) : null}
             </div>
             <div style={{ marginTop: "16px" }}>
+              <label className="field">
+                <span className="label">Total days in country</span>
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  step={1}
+                  placeholder="e.g. 90"
+                  value={totalDaysInput}
+                  onChange={(event) => setTotalDaysInput(event.target.value)}
+                />
+              </label>
+              <div className="result" style={{ marginTop: "12px" }}>
+                <div className="value" style={{ fontSize: "1.6rem" }}>
+                  {endDateResult.endDate
+                    ? endDateResult.endTime
+                      ? `${endDateResult.endDate} ${endDateResult.endTime}`
+                      : endDateResult.endDate
+                    : "—"}
+                </div>
+                <div>{endDateResult.summary}</div>
+                {endDateResult.detail ? <div className="note">{endDateResult.detail}</div> : null}
+                {endDateResult.error ? (
+                  <div className="note">Fix inputs to calculate the end date.</div>
+                ) : null}
+              </div>
+            </div>
+            <div style={{ marginTop: "16px" }}>
               <button
                 className="cta"
                 type="button"
@@ -326,6 +472,7 @@ export default function Home() {
                   setDepartureDate("");
                   setArrivalTime("");
                   setDepartureTime("");
+                  setTotalDaysInput("");
                   setMode("inclusive");
                 }}
               >
